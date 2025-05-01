@@ -19,3 +19,8 @@ def f_schaffer1d(x):
     f1 = -np.square(x)
     f2 = -np.square(x-2)
     return f1, f2
+
+
+def f_perso(x, y):
+    f1 = np.abs(x-1) + np.abs(y-2)
+    return -f1

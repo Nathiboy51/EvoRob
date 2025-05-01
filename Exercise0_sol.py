@@ -4,7 +4,7 @@ import os
 
 from src.EA.ES_sol import ES, ES_opts
 from src.world.World import World
-from src.world.envs.TestFunctions import f_reversed_ackley, f_rosenbrock
+from src.world.envs.TestFunctions import f_reversed_ackley, f_rosenbrock, f_perso
 from src.utils.Filesys import get_project_root
 
 """ Large programming projects are often modularised in different components. 
@@ -45,12 +45,13 @@ class MyWorld(World):
 
     def evaluate_individual(self, genotype):
         x, y = self.geno2pheno(genotype)
-        fitness = f_rosenbrock(x, y)
+        fitness = f_perso(x, y)
         return fitness
 
 
 def run_EA(ea, world):
     # TODO: Understand the EA ask/tell interface.
+    print("Running EA...")
     for _ in range(ea.n_gen):
         pop = ea.ask()
         fitnesses_gen = np.empty(ea.n_pop)
@@ -107,7 +108,7 @@ def main():
     CMAES_opts["min"] = -4
     CMAES_opts["max"] = 4
     CMAES_opts["num_generations"] = 100
-    CMAES_opts["mutation_sigma"] = 0.3
+    CMAES_opts["mutation_sigma"] = 2.5
     results_dir_cmaes = os.path.join(ROOT_DIR, 'results', ENV_NAME, 'CMAES')
     ea = CMAES(population_size, n_parameters, CMAES_opts, results_dir_cmaes)
 
