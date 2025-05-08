@@ -97,18 +97,18 @@ class AntWorld(World):
 
         # define the type of connections [FIXED ARCHITECTURE]
         connectivity_mat = np.array(
-            [[150, np.inf, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 150, np.inf, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 150, np.inf, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 150, np.inf, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 150, np.inf, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 150, np.inf, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 150, np.inf, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, np.inf, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], ]
+            [[150, np.inf, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 150, np.inf, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 150, np.inf, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 150, np.inf, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 150, np.inf, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 150, np.inf, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 150, np.inf, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 150, np.inf],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], ]
         )
         return points, connectivity_mat
 
@@ -153,8 +153,8 @@ class AntWorld(World):
             # Store rewards for active environments only
             rewards_full[step, done_mask == False] = rewards[done_mask == False]
 
-            # multi_obj_reward = np.array([infos[...], -infos[...]]).T  # TODO
-            # multi_obj_rewards_full[step, done_mask == False] = multi_obj_reward[done_mask == False]
+            multi_obj_reward = np.array([infos['reward_forward'], -infos['ctrl_cost']]).T  # TODO
+            multi_obj_rewards_full[step, done_mask == False] = multi_obj_reward[done_mask == False]
 
             # Update the done mask based on the "done" and "truncated" flags
             done_mask = done_mask | dones | truncated
@@ -259,12 +259,12 @@ def main():
     CMAES_opts["mutation_sigma"] = 0.33
 
     results_dir = os.path.join(ROOT_DIR, 'results', ENV_NAME, 'single')
-    ea_single = CMAES(population_size, n_parameters, CMAES_opts, results_dir)
+    ea_single = CMAES_sol(population_size, n_parameters, CMAES_opts, results_dir)
 
     run_EA_single(ea_single, world)
 
     # %% Optimise multi-objective
-    # TODO implement NSGAII
+    # TODO implement the NSGAII
     world = AntWorld()
     n_parameters = world.n_params
 
@@ -277,13 +277,13 @@ def main():
     NSGA_opts["crossover_prob"] = 0.5
 
     results_dir = os.path.join(ROOT_DIR, 'results', ENV_NAME, 'multi')
-    ea_multi_obj = NSGAII(population_size, n_parameters, NSGA_opts, results_dir)
+    ea_multi_obj = NSGAII_sol(population_size, n_parameters, NSGA_opts, results_dir)
 
     run_EA_multi(ea_multi_obj, world)
 
     # %% visualise
     # TODO: Make a video of the best individual, and plot the fitness curve.
-    best_individual = np.load(os.path.join(results_dir, f"{NSGA_opts["num_generations"]-1}", "x_best.npy"))
+    best_individual = np.load(os.path.join(results_dir, "99", "x_best.npy"))
 
     points, connectivity_mat = world.geno2pheno(best_individual)
     robot = AntRobot(points, connectivity_mat, world.joint_limits, world.joint_axis, verbose=False)
@@ -302,5 +302,6 @@ def main():
     generate_best_individual_video(world)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
+
