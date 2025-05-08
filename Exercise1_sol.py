@@ -132,6 +132,7 @@ def main():
     n_sim_steps = int(trial_time / world.dt)
     n_total_steps = population_size * ES_opts["num_generations"] * n_sim_steps
     print("➡ Starting PPO training...")
+    print(f"Total steps: {n_total_steps}")
     ppo.learn(total_timesteps=n_total_steps)
     # ppo.learn(total_timesteps=50000)  # Pour un test rapide
     print("✅ PPO training done.")
