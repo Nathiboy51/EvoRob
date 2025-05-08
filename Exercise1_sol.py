@@ -1,4 +1,5 @@
 from src.EA.ES import ES, ES_opts
+# from src.EA.EA import EA tried it au cas où
 from src.EA.CMAES import CMAES, CMAES_opts
 from src.world.robot.controllers import MLP
 from src.utils.Filesys import get_project_root
@@ -77,6 +78,7 @@ def run_EA(ea, world):
 
 def generate_best_individual_video(controller, video_name: str = 'EvoRob1_video.mp4'):
     # TODO: Make a video of the best individual, and plot the fitness curve.
+    print("Generating video...")
     env = gym.make(ENV_NAME, render_mode="rgb_array")
     rewards_list = []
     observations, info = env.reset()
@@ -93,6 +95,7 @@ def generate_best_individual_video(controller, video_name: str = 'EvoRob1_video.
     import imageio
     imageio.mimsave(video_name, frames, fps=30)  # Set frames per second (fps)
     env.close()
+    print(f"Video saved as {video_name}")
 
 
 def main():
@@ -100,25 +103,27 @@ def main():
     world = CheetahWorld()
     n_parameters = world.n_params
 
+
     # TODO: improve the ES settings
     ES_opts["min"] = -1
     ES_opts["max"] = 1
     ES_opts["num_parents"] = 100
-    ES_opts["num_generations"] = 100
+    ES_opts["num_generations"] = 100 #100
     ES_opts["mutation_sigma"] = .5
 
     population_size = 50
 
-    results_dir = os.path.join(ROOT_DIR, 'results', ENV_NAME, 'CMAES')
-    ea = ES(population_size, n_parameters, ES_opts, results_dir)
+    results_dir = os.path.join(ROOT_DIR, 'results', ENV_NAME, 'EA')
+    ea = CMAES(population_size, n_parameters, ES_opts, results_dir)
 
-    run_EA(ea, world)
+    if False:
+        run_EA(ea, world)
 
-    # %% Make video of best behaviour
-    best_individual = np.load(os.path.join(results_dir, "99", "x_best.npy"))
-    world.controller.geno2pheno(best_individual)
+        # %% Make video of best behaviour
+        best_individual = np.load(os.path.join(results_dir, "99", "x_best.npy"))
+        world.controller.geno2pheno(best_individual)
 
-    generate_best_individual_video(world.controller, 'EA_best.mp4')
+        generate_best_individual_video(world.controller, 'CMAES_best.mp4')
 
     # %% Compare with PPO
     env = gym.make(ENV_NAME)
@@ -126,7 +131,10 @@ def main():
     trial_time = 50  # seconds in simulation
     n_sim_steps = int(trial_time / world.dt)
     n_total_steps = population_size * ES_opts["num_generations"] * n_sim_steps
+    print("➡ Starting PPO training...")
     ppo.learn(total_timesteps=n_total_steps)
+    # ppo.learn(total_timesteps=50000)  # Pour un test rapide
+    print("✅ PPO training done.")
     ppo_controller = PPO_controller(ppo)
 
     rewards_list = []
@@ -146,3 +154,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+# %%
